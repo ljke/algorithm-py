@@ -1,3 +1,5 @@
+from Queue import Queue
+
 from typing import TypeVar, Generic, Generator, Optional
 
 # use generics to construct node
@@ -13,6 +15,7 @@ class TreeNode(Generic[T]):
 
 
 ########################################
+# traversal                            #
 # use generator to implement recursion #
 ########################################
 
@@ -60,6 +63,132 @@ def post_order(root):
         return
 
 
+#######################
+# add more operations #
+#######################
+
+def reverse_tree(root):  # type: (Optional[TreeNode[T]]) -> None
+    """
+    reverse all subtree of tree, use recursive
+    :param root: root node of a tree
+    :return:
+    """
+    if root is not None:
+        root.left, root.right = root.right, root.left
+        reverse_tree(root.left)
+        reverse_tree(root.right)
+    else:
+        return
+
+
+def get_num(root):  # type: (Optional[TreeNode[T]]) -> int
+    """
+    use bfs to count total number of node
+    :param root: root node
+    :return: node number
+    """
+    if root is None:
+        return 0
+    else:
+        q = Queue()
+        count = 0
+        q.put(root)
+        while not q.empty():
+            n = q.get()
+            count += 1
+            if n.left:
+                q.put(n.left)
+            # equal relationship, no elif
+            if n.right:
+                q.put(n.right)
+        return count
+
+
+def is_symmetrical(root):  # type: (Optional[TreeNode[T]]) -> bool
+    """
+    judge if tree is a symmetrical structure
+    :param root: root node
+    :return: bool
+    """
+    if root is None:
+        return True
+    num = get_num(root)
+    if num % 2 == 0:  # even number must be asymmetry
+        return False
+    else:
+        return check_subtree_symmetrical(root.left, root.right)
+
+
+def check_subtree_symmetrical(left, right):  # type: (Optional[TreeNode[T]],Optional[TreeNode[T]]) -> bool
+    """
+    recurse check subtree symmetrical
+    :param left:
+    :param right:
+    :return:
+    """
+    if not left:  # left child is None, symmetry require right child is None, too
+        return right is None
+    if not right:  # left child is not None, but right child is None, must be asymmetry
+        return False
+    if left.val != right.val:  # compare children value
+        return False
+    return check_subtree_symmetrical(left.right, right.left) and check_subtree_symmetrical(left.left, right.right)
+
+
+def get_width(root):  # type: (Optional[TreeNode[T]]) -> int
+    """
+    use bfs to calculate max number of every level
+    :param root:
+    :return:
+    """
+    if root is None:
+        return 0
+    q = Queue()
+    q.put(root)
+    width = 1
+    q_depth = 1  # every level's number
+    while not q.empty():
+        while q_depth:
+            n = q.get()
+            if n.left:
+                q.put(n.left)
+            if n.right:
+                q.put(n.right)
+            q_depth -= 1
+        q_depth = q.qsize()  # qsize(): approximate size because synchronization problem, but single thread is accurate
+        width = max(width, q_depth)
+    return width
+
+
+def re_construct(pre_order_list, in_order_list):  # type: (Optional[list], Optional[list]) -> Optional[TreeNode[T]]
+    """
+    re-construct a tree according to its traversal lists
+    :param pre_order_list:
+    :param in_order_list:
+    :return: re-construct tree's root node
+    """
+    if pre_order_list is None or in_order_list is None or (not len(pre_order_list)) or (not len(in_order_list)):
+        return None
+    root = TreeNode(pre_order_list[0])  # pre_order list's first node is root node
+    # find root node in in_order list, the first one must be root node
+    index = in_order_list.index(pre_order_list[0])
+    # left_in = left_pre = right_in = right_pre = [] # error: this cause variable use same object
+    left_in = []
+    left_pre = []
+    right_in = []
+    right_pre = []
+    # according to root node's index to spilt order list into left and right two part
+    left_in.extend(in_order_list[:index])
+    left_pre.extend(pre_order_list[1:index + 1])
+    right_in.extend(in_order_list[index + 1:])
+    right_pre.extend(pre_order_list[index + 1:])
+
+    # recurse get subtree's root node
+    root.left = re_construct(left_pre, left_in)
+    root.right = re_construct(right_pre, right_in)
+    return root
+
+
 if __name__ == '__main__':
     singer = TreeNode("Taylor Swift")
 
@@ -91,3 +220,33 @@ if __name__ == '__main__':
     print(list(pre_order(singer)))
     print(list(in_order(singer)))
     print(list(post_order(singer)))
+
+    root_node = TreeNode(0)
+    child_node1_1 = TreeNode(1)
+    child_node1_2 = TreeNode(1)
+    child_node2_1 = TreeNode(2)
+    child_node2_2 = TreeNode(3)
+    child_node2_3 = TreeNode(4)
+    child_node2_4 = TreeNode(2)
+
+    root_node.left, root_node.right = child_node1_1, child_node1_2
+    child_node1_1.left, child_node1_1.right = child_node2_1, child_node2_2
+    child_node1_2.left, child_node1_2.right = child_node2_3, child_node2_4
+    print(list(in_order(root_node)))
+
+    reverse_tree(root_node)
+    print(list(in_order(root_node)))
+
+    print("is symmetrical:", is_symmetrical(root_node))
+    child_node2_3.val = 3
+    print(list(in_order(root_node)))
+    print("is symmetrical:", is_symmetrical(root_node))
+
+    print("Tree number:", get_num(root_node))
+    print("Tree width:", get_width(root_node))
+
+    # use list() to change generator to list
+    child_node2_2.val = 2
+    print(list(in_order(root_node)))
+    re_root = re_construct(list(pre_order(root_node)), list(in_order(root_node)))
+    print(list(in_order(re_root)))
