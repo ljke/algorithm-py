@@ -2,6 +2,10 @@ import math
 import random
 
 
+# Problem: Generic subclass can not be inherited, so unable to use
+# from typing import TypeVar, Generic, List
+# T = TypeVar("T")
+
 class Heap:
     def __init__(self, nums=None, capacity=100):
         self._data = []
@@ -15,60 +19,25 @@ class Heap:
                 self._data.append(n)
         self._length = len(self._data)
 
-    @staticmethod
-    def _heap_down(data, idx, tail_idx):
-        """
-        heapify from top to bottom
-        :param data: source array
-        :param idx:start node index
-        :param tail_idx:end node index
-        """
-        assert type(data) is list
-        lp = (tail_idx - 1) // 2
-        # top-down
-        while idx <= lp:
-            # left and right child index
-            lc = 2 * idx + 1
-            rc = lc + 1
-            # get the maximum between two children
-            if rc <= tail_idx:
-                tmp = lc if data[lc] > data[rc] else rc
-            else:
-                tmp = lc
-            # get the maximum between parent and children
-            if data[tmp] > data[idx]:
-                data[tmp], data[idx] = data[idx], data[tmp]
-                idx = tmp
-            else:
-                break  # do not need to swap, heapify finished, exit early
+    def get_data(self):
+        return self._data
 
-    @staticmethod
-    def _heap_up(data, idx):
-        """
-        heapify from bottom to top
-        :param data: source array
-        :param idx: heapify node index
-        """
-        assert type(data) is list
-        while idx > 0:
-            p = (idx - 1) // 2  # parent node
-            # compare with parent node
-            if data[idx] > data[p]:
-                data[idx], data[p] = data[p], data[idx]
-                idx = p
-            else:
-                break
+    def get_length(self):
+        return self._length
+
+    def _heap_down(self, data, idx, tail_idx):
+        pass
+
+    def _heap_up(self, data, idx):
+        pass
 
     def build_heap(self):
-        self._heapify(self._data, self._length - 1)
-
-    def _heapify(self, data, tail_idx):
         """
-        heapify core method, data--from end to start, heapify--from top to bottom
-        :param data: source array
-        :param tail_idx: end node index
+        build heap from data
         :return:
         """
+        data = self._data
+        tail_idx = self._length - 1
         if tail_idx <= 0:
             return
         # index of the last parent node
@@ -118,6 +87,21 @@ class Heap:
             self._heap_down(data, 0, length - 1)
         return ret
 
+    def sort(self):
+        """
+        :return: None if data is empty, else, return sorted data
+        """
+        data = self._data
+        assert type(data) is list
+        length = len(data)
+        if length <= 1:
+            return None
+        self.build_heap()
+        for i in range(length - 1, 0, -1):
+            data[0], data[i] = data[i], data[0]  # swap to tail
+            self._heap_down(data, 0, i - 1)
+        return self._data
+
     @staticmethod
     def _draw_heap(data):
         length = len(data)
@@ -136,10 +120,119 @@ class Heap:
         return self._draw_heap(self._data)
 
 
+class MaxHeap(Heap):
+    def _heap_down(self, data, idx, tail_idx):
+        """
+        heapify from top to bottom
+        :param data: source array
+        :param idx:start node index
+        :param tail_idx:end node index
+        """
+        assert type(data) is list
+        lp = (tail_idx - 1) // 2
+        # top-down
+        while idx <= lp:
+            # left and right child index
+            lc = 2 * idx + 1
+            rc = lc + 1
+            # get the maximum between two children
+            if rc <= tail_idx:
+                tmp = lc if data[lc] > data[rc] else rc
+            else:
+                tmp = lc
+            # get the maximum between parent and children
+            if data[tmp] > data[idx]:
+                data[tmp], data[idx] = data[idx], data[tmp]
+                idx = tmp
+            else:
+                break  # do not need to swap, heapify finished, exit early
+
+    def _heap_up(self, data, idx):
+        """
+        heapify from bottom to top
+        :param data: source array
+        :param idx: heapify node index
+        """
+        assert type(data) is list
+        while idx > 0:
+            p = (idx - 1) // 2  # parent node
+            # compare with parent node
+            if data[idx] > data[p]:
+                data[idx], data[p] = data[p], data[idx]
+                idx = p
+            else:
+                break
+
+
+class MinHeap(Heap):
+    def _heap_down(self, data, idx, tail_idx):
+        """
+        heapify from top to bottom
+        :param data: source array
+        :param idx:start node index
+        :param tail_idx:end node index
+        """
+        assert type(data) is list
+        lp = (tail_idx - 1) // 2
+        # top-down
+        while idx <= lp:
+            # left and right child index
+            lc = 2 * idx + 1
+            rc = lc + 1
+            # get the minimum between two children
+            if rc <= tail_idx:
+                tmp = lc if data[lc] < data[rc] else rc
+            else:
+                tmp = lc
+            # get the minimum between parent and children
+            if data[tmp] < data[idx]:
+                data[tmp], data[idx] = data[idx], data[tmp]
+                idx = tmp
+            else:
+                break  # do not need to swap, heapify finished, exit early
+
+    def _heap_up(self, data, idx):
+        """
+        heapify from bottom to top
+        :param data: source array
+        :param idx: heapify node index
+        """
+        assert type(data) is list
+        while idx > 0:
+            p = (idx - 1) // 2  # parent node
+            # compare with parent node
+            if data[idx] < data[p]:
+                data[idx], data[p] = data[p], data[idx]
+                idx = p
+            else:
+                break
+
+
 if __name__ == '__main__':
     nums = list(range(10))
     random.shuffle(nums)
-    bh = Heap(nums)
+    print 'Max Heap:'
+    bh = MaxHeap(nums)
+    print '---before build heap---'
+    print bh
+    print '---after build heap---'
+    bh.build_heap()
+    print bh
+    print '---insert heap---'
+    if bh.insert(8):
+        print 'insert success'
+    else:
+        print 'insert fail'
+    print bh
+    # get top
+    print '---get top---'
+    print 'get top of the heap:{}'.format(bh.get_top())
+    bh.remove_top()
+    print bh
+
+    random.shuffle(nums)
+    print 'Min Heap:'
+    bh = MinHeap(nums)
     print '---before build heap---'
     print bh
     print '---after build heap---'
