@@ -20,3 +20,8 @@ def hash_a(item):
 def hash_b(item):
     # Typechecks
     item.magic()
+
+
+test = [[1, 2], [2, 3], [3, 4], [4, 5]]
+for t in test[4]:
+    print t
