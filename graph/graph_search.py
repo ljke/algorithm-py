@@ -23,12 +23,12 @@ class Graph:
 
     def _generate_path(self, s, t, prev):
         """
-        recursive call to print a path
+        recursive call to print a path, before call, must ensure that path exists
         :param s: start vertex
         :param t: end vertex
         :param prev: prev list that store path info
         """
-        if s != t:
+        if prev[t] and s != t:
             for path in self._generate_path(s, prev[t], prev):
                 yield path
         yield str(t)
@@ -52,37 +52,43 @@ class Graph:
             # add neighbour of v
             for neighbour in self._adjacency[v]:
                 if not visited[neighbour]:
-                    visited[neighbour] = True
                     prev[neighbour] = v
                     if neighbour == t:
                         print "->".join(self._generate_path(s, t, prev))
                         return
                     else:
                         q.append(neighbour)
+                        visited[neighbour] = True  # after append to queue, it is considered to have been visited
+        print "No found"
 
     def dfs(self, s, t):
         # because python2 not support nonlocal keyword, so use dict to store data
         # Inner functions are not prohibited from mutating the objects that Nonlocal variables refer to.
-        flag = {"found": False}
+        # when use return value, found flag is not needed
+        # flag = {"found": False}
         visited = [False] * self._num_vertices
         prev = [None] * self._num_vertices
 
         def _dfs(from_vertex):
-            if flag["found"]:
-                return
+            # if flag["found"]:
+            #     return True  # add bool return value
             visited[from_vertex] = True
             if from_vertex == t:
-                flag["found"] = True
-                return
+                # flag["found"] = True
+                return True
+            ret = False  # store recursion result
             for neighbour in self._adjacency[from_vertex]:
-                if flag["found"]:
-                    return
+                if ret:  # exit early
+                    return True
                 if not visited[neighbour]:
                     prev[neighbour] = from_vertex
-                    _dfs(neighbour)
+                    ret = _dfs(neighbour)
+            return ret
 
-        _dfs(s)
-        print "->".join(self._generate_path(s, t, prev))
+        if _dfs(s):
+            print "->".join(self._generate_path(s, t, prev))
+        else:
+            print "No found"
 
 
 if __name__ == "__main__":

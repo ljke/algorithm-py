@@ -20,6 +20,7 @@ def search(name):
     searched = []  # 存储已遍历顶点，不重复查找
     prev = {}  # 记录搜索路径
     search_queue.append(name)
+    searched.append(name)
     while search_queue:
         person = search_queue.popleft()
         # 检查邻居
@@ -39,7 +40,7 @@ def search(name):
 
 # 打印搜索路径
 def print_path(start, end, prev):
-    if start != end:  # 递归结束条件
+    if prev[end] and start != end:  # 递归结束条件
         print_path(start, prev.get(end), prev)
     print " -> ", str(end),
 
