@@ -9,7 +9,7 @@ class Graph(object):
         self.V = vertices
         self.edges = []
 
-    def add_edge(self, u, v, w):
+    def add_edge(self, u, v, w): # u - src, v - dst, w - weight
         self.edges.append([u, v, w])
 
     def bellman_ford(self, src):

@@ -36,7 +36,7 @@ def get_climbing_way_2(n, record):
             return value
 
 
-# 动态规划
+# 动态规划, 斐波那契数列求解，递推方式和爬楼梯问题相反
 def get_climbing_way_3(n):
     # type: (int) -> int
     if n < 1:
