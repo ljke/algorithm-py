@@ -1,6 +1,6 @@
 from Queue import Queue
 
-from typing import TypeVar, Generic, Generator, Optional
+from typing import TypeVar, Generic, Generator, Optional, List
 
 # use generics to construct node
 T = TypeVar("T")
@@ -189,6 +189,94 @@ def re_construct(pre_order_list, in_order_list):  # type: (Optional[list], Optio
     return root
 
 
+def find_max_distance(root):  # type: (TreeNode) -> int
+    """
+    find max distance between arbitrary two node
+    :param root:
+    :return:
+    """
+
+    def _recur_find(node):  # type: (TreeNode) -> (int, int)
+        """
+        recursive find max distance and max depth of current tree
+        :param node:current root of tree
+        :return:(max_distance, max_depth)
+        """
+        if node is None:
+            return 0, -1  # null node's depth is -1, and left node's depth is 0
+        lmd = _recur_find(node.left)
+        rmd = _recur_find(node.right)
+        max_dist = max(lmd[1] + rmd[1] + 2, max(lmd[0], rmd[0]))  # update max distance
+        max_depth = max(lmd[1], rmd[1]) + 1  # update max depth
+        return max_dist, max_depth
+
+    return _recur_find(root)[0]
+
+
+def find_max_distance_opti(root):  # type: (TreeNode) -> int
+    """
+    find max distance between arbitrary two node without transfer max distance
+    :param root:
+    """
+    md = [0]  # use to store max distance, py2.7 not support 'nolocal', so use list to replace
+
+    def _recur_find(node):
+        if node is None:
+            return -1
+        lmd = _recur_find(node.left) + 1
+        rmd = _recur_find(node.right) + 1
+        md[0] = max(md[0], lmd + rmd)  # update max distance
+        return max(lmd, rmd)  # return max depth
+
+    _recur_find(root)
+    return md[0]
+
+
+def num_trees(n):  # type: (int) -> int
+    """
+    use dynamic-programming to calculate unique BST number by using 1...n
+    :param n:
+    :return:
+    """
+    count = [0] * (n + 1)
+    count[0] = 1
+    count[1] = 1
+    for i in range(2, n + 1):  # calculate count in turn
+        for j in range(i):  # every count contain several segmentation
+            count[i] += count[j] * count[i - j - 1]
+    return count[n]
+
+
+def num_and_generate_trees(n):  # type: (int) -> List[TreeNode[int]]
+    """
+    generate all unique BST and generate all possible
+    :param n:
+    """
+
+    def _generate_trees(start, end):
+        # type: (int, int) -> List[TreeNode[int]]
+        res = []
+        if start > end:
+            res.append(None)
+            return res
+        for i in range(start, end + 1):  # i is root node
+            left = _generate_trees(start, i - 1)
+            right = _generate_trees(i + 1, end)
+
+            for l in left:
+                for r in right:  # traverse all possible combination
+                    root = TreeNode(i)
+                    root.left = l
+                    root.right = r
+                    res.append(root)
+        return res
+
+    if n == 0:
+        return []
+    else:
+        return _generate_trees(1, n)
+
+
 if __name__ == '__main__':
     singer = TreeNode("Taylor Swift")
 
@@ -228,10 +316,16 @@ if __name__ == '__main__':
     child_node2_2 = TreeNode(3)
     child_node2_3 = TreeNode(4)
     child_node2_4 = TreeNode(2)
+    child_node3_1 = TreeNode(3)
 
     root_node.left, root_node.right = child_node1_1, child_node1_2
     child_node1_1.left, child_node1_1.right = child_node2_1, child_node2_2
     child_node1_2.left, child_node1_2.right = child_node2_3, child_node2_4
+    child_node2_1.left = child_node3_1
+
+    print("Max Distance:", find_max_distance(root_node))
+    print("Max Distance:", find_max_distance_opti(root_node))
+
     print(list(in_order(root_node)))
 
     reverse_tree(root_node)
@@ -250,3 +344,8 @@ if __name__ == '__main__':
     print(list(in_order(root_node)))
     re_root = re_construct(list(pre_order(root_node)), list(in_order(root_node)))
     print(list(in_order(re_root)))
+
+    print(num_trees(5))
+    trees = num_and_generate_trees(5)
+    for tree in trees:
+        print(list(pre_order(tree)))
